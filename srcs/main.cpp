@@ -24,7 +24,7 @@ sf::Vector2f get_x(std::vector<std::string> const& lignes)
 		for (unsigned int j = 0; j  < lignes.back().size(); ++j)
 		{
 			if(lignes[i][j] == 'X')
-				return sf::Vector2f(j + 1, i + 1);
+				return sf::Vector2f(j, i);
 		}
 	}
 	return (sf::Vector2f(-1, -1));
@@ -51,11 +51,28 @@ struct player
 	}
 };
 
+void diviser_ray(const player &joueur)
+{
+	float	diff_ray = FOV / WIDTH;
+
+	sf::Vector2f vec;
+	
+	vec.x = joueur.dir.x * cos(FOV / 2) - joueur.dir.y * sin(FOV / 2);
+	vec.y = joueur.dir.x * sin(FOV / 2) + joueur.dir.y * cos(FOV / 2);
+
+	afficher_mur(dist_mur(vec));
+
+	for (int w = 0; w < WIDTH; ++w)
+	{
+		vec.x = joueur.dir.x * cos(FOV / (diff_ray - vec.x)) - joueur.dir.y * sin(FOV / (diff_ray - vec.y));
+		vec.y = joueur.dir.x * sin(FOV / (diff_ray - vec.y)) + joueur.dir.y * cos(FOV / (diff_ray - vec.y));
+
+		afficher_mur(dist_mur(vec));
+	}
+}
+
 int main(int argc, char** argv)
 {
-	player joueur;
-
-	
 	unsigned int taille_x = 0;
 	unsigned int taille_y = 0;
 
@@ -70,13 +87,15 @@ int main(int argc, char** argv)
 
 	taille_x = lignes.back().size();
 
+	player joueur;
+
+	std::cout << joueur.pos.x << std::endl;
+	std::cout << joueur.pos.y << std::endl;
+
 	sf::RenderWindow fenetre(sf::VideoMode(1600, 900), "RayCasting");	// Création d'une fenêtre de taille 1600 x 900 pixels nommée "RayCasting".
 	fenetre.setVerticalSyncEnabled(true);
 
 	sf::Event evenement;												// Création d'un évènement.
-	
-	std::cout<<taille_x<<std::endl;
-	std::cout<<taille_y<<std::endl;
 
 
 	while(fenetre.isOpen())												// Tant que la fenètre est ouverte
