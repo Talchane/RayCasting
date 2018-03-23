@@ -1,104 +1,95 @@
-#include <iostream>
-#include <fstream>
 #include <SFML/Graphics.hpp>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <iostream>
+#include "check_map.hpp"
 
-bool check_map(std::vector<std::string> const& carte)
+#define WIDTH fenetre.getSize().x
+#define HEIGHT fenetre.getSize().y
+#define VITESSE 0.2
+#define ROTATION 1
+
+
+std::vector <std::string> lignes;									// On crée un tableau de chaîne de charactère.
+std::string ligne;													// On crée un chaîne de charactère.						
+
+std::ifstream map("../map.rc");										// On ouvre un flux permettant de lire la map.
+
+
+sf::Vector2f get_x(std::vector<std::string> const& lignes)
 {
-	int lettre_x = 0;
-
-	for (int i = 0; i < carte.size(); ++i)
+	for (unsigned int i = 0; i < lignes.size(); ++i)
 	{
-		for (int j = 0; j < carte[0].size(); ++j)
+		for (unsigned int j = 0; j  < lignes.back().size(); ++j)
 		{
-			if(carte[i][j] == 'X')																// Si une des lettres de la map est un X
-				lettre_x++;																		// Alors le nombre de X augmente de 1.
-										
-			if (carte[i][j] != 'X' && \															// Si une des lettres de la map n'est ni un X
-				carte[i][j] != '1' && \															// Ni un 1
-				carte[i][j] != '0')																// Ni un 0
-			{
-				std::cout << "Il y à un '" << carte[i][j] << "' dans la map... " << std::endl;	// Alors on précise quel lettre est étrange
-				std::cout << "ligne : " << i+1 << " !" << std::endl;							// Puis on indique quel ligne
-				std::cout << "caractère : " << j+1 << " !" << std::endl;						// Puis quel charactère de la ligne
-				return false;																	// Et puis il y a une erreur.
-			}
+			if(lignes[i][j] == 'X')
+				return sf::Vector2f(j + 1, i + 1);
 		}
 	}
-
-	if(lettre_x == 0)																			// Si il n'y a aucun X dans la map
-	{
-		std::cout << "Il dois y avoir au minimum 1 'X' dans la map." << std::endl;				// Alors on indique le problème
-		return false;																			// Puis il y a une erreur.
-	}
-
-	if(lettre_x >= 2)																			// Si il y à plus de 1 X dans la map
-	{		
-		std::cout << "Il ne dois pas y avoir plus de 1 'X' dans la map." << std::endl;			// Alors
-		return false;
-	}
-
-	for (unsigned int i = 0; i < carte.size(); ++i)
-	{
-		if(i >= 1)
-		{
-			if(carte[i].size() != carte[i-1].size())
-			{
-				std::cout << "La map n'est pas rectangulaire." << std::endl;
-				std::cout << "Ligne : " << i << " !" << std::endl;					
-				return false;
-			}
-		}
-	}
-
-	unsigned int taille;
-	taille = carte.back().size();
-
-	for (unsigned int i = 0; i < taille; ++i)
-	{
-		if(carte.back()[i] != '1')
-		{
-			std::cout << "Il y a un trou au sud de la map." << std::endl;
-			return false;
-		}
-
-		if(carte[0][i] != '1')
-		{
-			std::cout << "Il y a un trou au nord de la map." << std::endl;
-			return false;
-		}
-	}
-
-	for (unsigned int i = 0; i < carte.size(); ++i)
-	{
-		if(carte[i][0] != '1') // Si le premier charactère de la première ligne est différent de 1...
-		{
-			std::cout << "Il manque un mur à l'ouest de la carte." << std::endl;
-			std::cout <<"ligne numéro : "<< i + 1 << "." << std::endl;
-			return false;
-		}
-
-		if(carte[i][carte[i].size()-1] != '1')
-		{
-			std::cout << "Il manque un mur à l'est de la carte." << std::endl;
-			std::cout <<"ligne numéro : "<< i + 1 << "." << std::endl;
-			return false;
-		} 
-	}
-
-	std::cout << "Aucune erreur trouvé." << std::endl;
-	return true;
+	return (sf::Vector2f(-1, -1));
 }
+
+
+struct player
+{
+	sf::Vector2f dir = sf::Vector2f(0, -1);
+	sf::Vector2f pos = get_x(lignes);
+
+	void move()
+	{
+		pos.x = pos.x + dir.x * VITESSE;
+		pos.y = pos.y + dir.y * VITESSE;
+	}
+	void rot(bool sens)
+	{
+		float	tmp = dir.x;
+		int		degree = ROTATION * ((sens) ? -1 : 1);
+
+		dir.x = dir.x * cos(degree) - dir.y * sin(degree);
+		dir.y = tmp * sin(degree) + dir.y * cos(degree);
+	}
+};
 
 int main(int argc, char** argv)
 {
-	std::vector <std::string> lignes;
-	std::string ligne;
-	std::ifstream map("../map.rc");
+	player joueur;
+
 	
-	while(getline(map, ligne))
-		lignes.push_back(ligne);
+	unsigned int taille_x = 0;
+	unsigned int taille_y = 0;
 
-	std::cout << check_map(lignes) << std::endl;
+	while(getline(map, ligne))											// Tant qu'on a pas parcouru toutes les lignes de la map
+	{
+		lignes.push_back(ligne);										// Alors on ajoute dans notre tableau de chaîne de charactère la "ligne" ème ligne.
+		taille_y++;
+	}
+			
+	if(!check_map(lignes))												// Puis on effectue une vérification de la map.
+		return EXIT_FAILURE;
 
-	return 0;
+	taille_x = lignes.back().size();
+
+	sf::RenderWindow fenetre(sf::VideoMode(1600, 900), "RayCasting");	// Création d'une fenêtre de taille 1600 x 900 pixels nommée "RayCasting".
+	fenetre.setVerticalSyncEnabled(true);
+
+	sf::Event evenement;												// Création d'un évènement.
+	
+	std::cout<<taille_x<<std::endl;
+	std::cout<<taille_y<<std::endl;
+
+
+	while(fenetre.isOpen())												// Tant que la fenètre est ouverte
+	{
+		while(fenetre.pollEvent(evenement))								// Tant qu'un évènement est détecté
+		{
+			if(evenement.type == sf::Event::Closed)						// Si l'évènement détecté est la fermeture de la fenêtre
+				fenetre.close();										// Alors on ferme la fenêtre.
+		}
+
+		fenetre.clear(sf::Color::Black);								// Effacement de tout ce qui apparait sur la fenêtre avec la couleur noir.
+		fenetre.display();												// Affichage de tout ce qui a été dessiné.
+	}
+
+	return 0;															// On ferme le programme à la fin.
 }
