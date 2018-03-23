@@ -9,6 +9,7 @@
 #define HEIGHT fenetre.getSize().y
 #define VITESSE 0.2
 #define ROTATION 1
+#define FOV 45
 
 
 std::vector <std::string> lignes;									// On crée un tableau de chaîne de charactère.
@@ -51,7 +52,17 @@ struct player
 	}
 };
 
-void diviser_ray(const player &joueur)
+float dist_mur(sf::Vector2f const& vector)
+{
+	return 1;
+}
+
+void afficher_mur(float const& dist_mur)
+{
+
+}
+
+void diviser_ray(const player &joueur, sf::RenderWindow const& fenetre)
 {
 	float	diff_ray = FOV / WIDTH;
 
@@ -62,7 +73,7 @@ void diviser_ray(const player &joueur)
 
 	afficher_mur(dist_mur(vec));
 
-	for (int w = 0; w < WIDTH; ++w)
+	for (unsigned int w = 0; w < WIDTH; ++w)
 	{
 		vec.x = joueur.dir.x * cos(FOV / (diff_ray - vec.x)) - joueur.dir.y * sin(FOV / (diff_ray - vec.y));
 		vec.y = joueur.dir.x * sin(FOV / (diff_ray - vec.y)) + joueur.dir.y * cos(FOV / (diff_ray - vec.y));
@@ -73,7 +84,6 @@ void diviser_ray(const player &joueur)
 
 int main(int argc, char** argv)
 {
-	unsigned int taille_x = 0;
 	unsigned int taille_y = 0;
 
 	while(getline(map, ligne))											// Tant qu'on a pas parcouru toutes les lignes de la map
@@ -84,9 +94,7 @@ int main(int argc, char** argv)
 			
 	if(!check_map(lignes))												// Puis on effectue une vérification de la map.
 		return EXIT_FAILURE;
-
-	taille_x = lignes.back().size();
-
+	
 	player joueur;
 
 	std::cout << joueur.pos.x << std::endl;
