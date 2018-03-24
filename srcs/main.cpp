@@ -71,6 +71,13 @@ void diviser_ray(const player &joueur, sf::RenderWindow const& fenetre)
 	vec.x = joueur.dir.x * cos(FOV / 2) - joueur.dir.y * sin(FOV / 2);
 	vec.y = joueur.dir.x * sin(FOV / 2) + joueur.dir.y * cos(FOV / 2);
 
+
+	float test_x;
+	float test_y;
+
+	test_x = vec.x;
+	test_y = vec.y;
+
 	std::cout << vec.x << std::endl;
 	std::cout << vec.y << std::endl << std::endl;
 
@@ -78,8 +85,11 @@ void diviser_ray(const player &joueur, sf::RenderWindow const& fenetre)
 
 	for (unsigned int w = 1; w <= WIDTH; ++w)
 	{
-		vec.x =
-		vec.y =
+		vec.x = joueur.dir.x * cos(FOV / (2 - test_x)) - joueur.dir.y * sin(FOV / (2 - test_x));
+		vec.y = joueur.dir.x * sin(FOV / (2 - test_y)) + joueur.dir.y * cos(FOV / (2 - test_y));
+
+		test_x = vec.x;
+		test_y = vec.y;
 
 		std::cout << vec.x << std::endl;
 		std::cout << vec.y << std::endl << std::endl;
