@@ -102,10 +102,6 @@ float dist_mur(sf::Vector2f const& dir, sf::Vector2f const& pos, std::vector<std
 
 void afficher_mur(float const& dist_mur, sf::Image &image, unsigned int colonne, sf::Vector2f vec)
 {
-	(void)dist_mur;
-	(void)image;
-	(void)colonne;
-
 	unsigned short int ratio = HEIGHT * 0.5;
 	unsigned short int mur_h = (unsigned short int)(ratio / dist_mur);
 	unsigned short int rab_cl = (unsigned short int)((HEIGHT - mur_h) / 2);
@@ -132,7 +128,7 @@ void afficher_mur(float const& dist_mur, sf::Image &image, unsigned int colonne,
 
 void diviser_ray(const player &joueur, sf::Image &image, std::vector<std::string> lignes)
 {
-//float	diff_ray = FOV / WIDTH;
+	float diff_ray = FOV / WIDTH;
 
 	sf::Vector2f vec;
 
@@ -149,10 +145,11 @@ void diviser_ray(const player &joueur, sf::Image &image, std::vector<std::string
 
 //	afficher_mur(dist_mur(vec, joueur.pos, lignes), image, w, vec);
 
-	for (w = 1; w <= WIDTH; ++w)
+	for (w = 0; w < WIDTH; ++w)
 	{
-		vec.x = joueur.dir.x * cos(FOV / (2 - test_x)) - joueur.dir.y * sin(FOV / (2 - test_x));
-		vec.y = joueur.dir.x * sin(FOV / (2 - test_y)) + joueur.dir.y * cos(FOV / (2 - test_y));
+		vec.x = test_x * cos(-diff_ray) - test_y * sin(-diff_ray);
+		vec.y = test_x * sin(-diff_ray) + test_y * cos(-diff_ray);
+
 
 		test_x = vec.x;
 		test_y = vec.y;
