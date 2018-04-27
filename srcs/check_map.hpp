@@ -1,5 +1,5 @@
-#ifndef CHECK_MAP_HPP
-#define CHECK_MAP_HPP
+#ifndef CHECK_MAP_HPP																			// Si le fichier n'a pas déja été inclut
+#define CHECK_MAP_HPP																			// Alors on l'inclut dans le code : 
 
 
 bool check_map(std::vector<std::string> const& carte)
@@ -87,8 +87,8 @@ bool check_map(std::vector<std::string> const& carte)
 		} 
 	}
 
-	std::cout << "Aucune erreur trouvé." << std::endl;											// Si aucune erreur n'a été trouvé, alors on le dit
+	std::cout << "Aucune erreur trouvée." << std::endl;											// Si aucune erreur n'a été trouvé, alors on le dit
 	return true;																				// Puis on sort de la fonction sans erreur.
 }
 
-#endif
+#endif																							// Jusqu'ici.
