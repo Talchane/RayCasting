@@ -198,6 +198,12 @@ int main()
 		{
 			if(evenement.type == sf::Event::Closed)						// Si l'évènement détecté est la fermeture de la fenêtre
 				fenetre.close();										// Alors on ferme la fenêtre.
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+				joueur.move();
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+				joueur.rot(false);
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+				joueur.rot(true);
 		}
 
 		fenetre.clear(sf::Color::Black);								// Effacement de tout ce qui apparait sur la fenêtre avec la couleur noir.
