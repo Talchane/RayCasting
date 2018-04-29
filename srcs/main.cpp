@@ -37,24 +37,34 @@ struct player
 	sf::Vector2f dir = sf::Vector2f(0, -1);
 	sf::Vector2f pos = get_x(lignes);
 
-	void move(bool sens, sf::Time temps)
+	void move(unsigned int sens, sf::Time temps)
 	{
-		if(sens == true)
+		if(sens == 1)
 		{
 			pos.x = pos.x + dir.x * VITESSE * temps.asSeconds();
 			pos.y = pos.y + dir.y * VITESSE * temps.asSeconds();
 		}
-		else
+		if(sens == 2)
 		{
 			pos.x = pos.x - dir.x * VITESSE * temps.asSeconds();
 			pos.y = pos.y - dir.y * VITESSE * temps.asSeconds();
 		}
+		/*if(sens == 3)
+		{
+			pos.x = pos.x - (dir.x - M_PI/2) * VITESSE * temps.asSeconds();
+			pos.y = pos.y - (dir.y - M_PI/2) * VITESSE * temps.asSeconds();
+		}
+		if(sens == 4)
+		{
+			pos.x = pos.x + (dir.x + M_PI/2) * VITESSE * temps.asSeconds();
+			pos.y = pos.y + (dir.y + M_PI/2) * VITESSE * temps.asSeconds();
+		}*/
 
 	}
-	void rot(bool sens, sf::Time temps)
+	void rot(bool sens, sf::Vector2i pos_mouse, sf::Vector2i pos_old, sf::Time temps)
 	{
 		float	tmp = dir.x;
-		float	degree = ROTATION * ((sens) ? -M_PI * temps.asSeconds() : M_PI * temps.asSeconds());
+		float	degree = ROTATION * ((sens) ? -(pos_mouse.x - pos_old.x) / 30 * temps.asSeconds() : (pos_old.x - pos_mouse.x) / 30 * temps.asSeconds());
 
 		dir.x = dir.x * cos(degree) - dir.y * sin(degree);
 		dir.y = tmp * sin(degree) + dir.y * cos(degree);
@@ -192,12 +202,13 @@ int main()
 	}
 
 	if(!check_map(lignes))												// Puis on effectue une vérification de la map.
-	return EXIT_FAILURE;												// Si une erreur est rencontrée, alors on quitte le programme.
+		return EXIT_FAILURE;												// Si une erreur a été rencontrée, alors on quitte le programme.
 
 	player joueur;														// On crée un joueur.
 
-	sf::RenderWindow fenetre(sf::VideoMode(1600, 900), "RayCasting");	// Création d'une fenêtre de taille 1600 x 900 pixels nommée "RayCasting".
+	sf::RenderWindow fenetre(sf::VideoMode(1600, 900), "RayCasting", sf::Style::Fullscreen);	// Création d'une fenêtre de taille 1600 x 900 pixels nommée "RayCasting".
 	fenetre.setVerticalSyncEnabled(true);
+	fenetre.setMouseCursorVisible(false);
 
 	sf::Event evenement;												// Création d'un évènement.
 
@@ -207,9 +218,11 @@ int main()
 	sf::Texture texture;												// Création d'une texture.
 	sf::Sprite spa;														// Création d'un sprite.
 
+	sf::Vector2i pos_old = sf::Mouse::getPosition(fenetre);
+
 	while(fenetre.isOpen())												// Tant que la fenètre est ouverte
 	{
-		for (double long i = 0; i < 50000000; ++i)	{}					// (Simulation de pc pas puissant)
+		//for (double long i = 0; i < 50000000; ++i)	{}				// (Simulation de pc pas puissant)
 
 		temps = chrono.restart();										// Réinisialisation le chrono et assignement de temps à sa valeur précédente.
 
@@ -222,23 +235,39 @@ int main()
 		{
 			if(evenement.type == sf::Event::Closed)						// Si l'évènement détecté est la fermeture de la fenêtre
 				fenetre.close();										// Alors on ferme de la fenêtre.
+
+			if (evenement.type == sf::Event::MouseMoved)
+			{
+			    if (evenement.mouseMove.x > pos_old.x)
+			    	joueur.rot(true, sf::Mouse::getPosition(fenetre), pos_old, temps);
+
+			    if (evenement.mouseMove.x < pos_old.x)
+			    	joueur.rot(false, sf::Mouse::getPosition(fenetre), pos_old, temps);
+
+			    pos_old = sf::Mouse::getPosition(fenetre);
+			}
+			if(pos_old.x > 800 || pos_old.x < 800)
+			{
+				pos_old = sf::Vector2i(800, sf::Mouse::getPosition().y);
+				sf::Mouse::setPosition(pos_old);
+			}
 			
 		}
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))			// Si on appuie sur échape
 			fenetre.close();											// Alors on ferme la fenêtre
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))				// Si on appuie sur la flèche du haut
-			joueur.move(true, temps);									// Alors on bouge le joueur
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z))				// Si on appuie sur la flèche du haut
+			joueur.move(1, temps);									// Alors on bouge le joueur
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-			joueur.move(false, temps);
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+			joueur.move(2, temps);
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-			joueur.rot(false, temps);
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+			joueur.move(3, temps);
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-			joueur.rot(true, temps);
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+			joueur.move(4, temps);
 
 		fenetre.clear(sf::Color::Black);								// Effacement de tout ce qui apparait sur la fenêtre avec la couleur noir.
 		fenetre.draw(spa);
