@@ -8,7 +8,6 @@
 
 #define WIDTH 1600
 #define HEIGHT 900
-#define VITESSE 2
 #define ROTATION 1
 #define FOV M_PI/2
 
@@ -37,7 +36,7 @@ struct player
 	sf::Vector2f dir = sf::Vector2f(0, -1);
 	sf::Vector2f pos = get_x(lignes);
 
-	void move(unsigned int sens, sf::Time temps)
+	void move(unsigned int sens, float const& VITESSE, sf::Time temps)
 	{
 		if(sens == 1)
 		{
@@ -49,22 +48,23 @@ struct player
 			pos.x = pos.x - dir.x * VITESSE * temps.asSeconds();
 			pos.y = pos.y - dir.y * VITESSE * temps.asSeconds();
 		}
-		/*if(sens == 3)
+		if(sens == 3)
 		{
-			pos.x = pos.x - (dir.x - M_PI/2) * VITESSE * temps.asSeconds();
-			pos.y = pos.y - (dir.y - M_PI/2) * VITESSE * temps.asSeconds();
+
+			pos.x = pos.x - dir.y  * VITESSE * temps.asSeconds();
+			pos.y = pos.y + dir.x * VITESSE * temps.asSeconds();
 		}
 		if(sens == 4)
 		{
-			pos.x = pos.x + (dir.x + M_PI/2) * VITESSE * temps.asSeconds();
-			pos.y = pos.y + (dir.y + M_PI/2) * VITESSE * temps.asSeconds();
-		}*/
+			pos.x = pos.x + dir.y  * VITESSE * temps.asSeconds();
+			pos.y = pos.y - dir.x * VITESSE * temps.asSeconds();
+		}
 
 	}
 	void rot(bool sens, sf::Vector2i pos_mouse, sf::Vector2i pos_old, sf::Time temps)
 	{
 		float	tmp = dir.x;
-		float	degree = ROTATION * ((sens) ? -(pos_mouse.x - pos_old.x) / 30 * temps.asSeconds() : (pos_old.x - pos_mouse.x) / 30 * temps.asSeconds());
+		float	degree = ROTATION * ((sens) ? -(pos_mouse.x - pos_old.x) / 18 * temps.asSeconds() : (pos_old.x - pos_mouse.x) / 18 * temps.asSeconds());
 
 		dir.x = dir.x * cos(degree) - dir.y * sin(degree);
 		dir.y = tmp * sin(degree) + dir.y * cos(degree);
@@ -113,7 +113,7 @@ float dist_mur(sf::Vector2f const& dir, sf::Vector2f const& pos, std::vector<std
 		stepY = 1;
 		sideDistY = (mapY + 1.0 - pos.y) * deltaDistY;
 	}
-	while (lignes[mapY][mapX] != '1')			// L'erreur est entre ces parenthèse.
+	while (lignes[mapY][mapX] != '1')
 	{
 		if (sideDistX < sideDistY)
 		{
@@ -143,17 +143,17 @@ void afficher_mur(float const& dist_mur, sf::Image &image, unsigned int colonne)
 
 	for (int i = 0; i < rab_cl && i < HEIGHT; ++i)
 	{
-		image.setPixel(colonne, i, sf::Color(80, 80, 80));  //80, 80, 80
+		image.setPixel(colonne, i, sf::Color(80, 80, 80));
 	}
 
 	for (int i = rab_cl; i < mur_h + rab_cl && i < HEIGHT; ++i)
 	{
-		image.setPixel(colonne, i, sf::Color(20, 20, 20));  // 20 20 20
+		image.setPixel(colonne, i, sf::Color(20, 20, 20));
 	}
 
 	for (int i = mur_h + rab_cl; i < HEIGHT; ++i)
 	{
-		image.setPixel(colonne, i, sf::Color(40, 40, 40));  // 40 40 40
+		image.setPixel(colonne, i, sf::Color(40, 40, 40));
 	}
 
 
@@ -193,6 +193,7 @@ void diviser_ray(const player &joueur, sf::Image &image, std::vector<std::string
 
 int main()
 {
+	float VITESSE = 1.7;													// On crée un float qui indiquera la vitesse de déplacement du personnage.
 	sf::Clock chrono;													// On crée un chrono.
 	sf::Time temps;														// On crée un temps.
 
@@ -236,6 +237,12 @@ int main()
 			if(evenement.type == sf::Event::Closed)						// Si l'évènement détecté est la fermeture de la fenêtre
 				fenetre.close();										// Alors on ferme de la fenêtre.
 
+			if(pos_old.x != 800)
+			{
+				pos_old = sf::Vector2i(800, sf::Mouse::getPosition().y);
+				sf::Mouse::setPosition(pos_old);
+			}
+
 			if (evenement.type == sf::Event::MouseMoved)
 			{
 			    if (evenement.mouseMove.x > pos_old.x)
@@ -246,31 +253,32 @@ int main()
 
 			    pos_old = sf::Mouse::getPosition(fenetre);
 			}
-			if(pos_old.x > 800 || pos_old.x < 800)
-			{
-				pos_old = sf::Vector2i(800, sf::Mouse::getPosition().y);
-				sf::Mouse::setPosition(pos_old);
-			}
 			
 		}
+
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))			// Si on appuie sur Control
+			VITESSE = 3;												// Alors on augmente la vitesse
+
+		if(!sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))			// Si on n'appuie pas sur Control
+			VITESSE = 1.7;												// Alors on diminue la vitesse
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))			// Si on appuie sur échape
 			fenetre.close();											// Alors on ferme la fenêtre
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z))				// Si on appuie sur la flèche du haut
-			joueur.move(1, temps);									// Alors on bouge le joueur
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z))					// Si on appuie sur Z
+			joueur.move(1, VITESSE, temps);								// Alors fait avancer le joueur
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-			joueur.move(2, temps);
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))					// Si on appuie sur S
+			joueur.move(2, VITESSE, temps);								// Alors fait reculer le joueur
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
-			joueur.move(3, temps);
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q))					// Si on appuie sur Q
+			joueur.move(3, VITESSE, temps);								// Alors fait aller à gauche le joueur
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-			joueur.move(4, temps);
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))					// Si on appuie sur D
+			joueur.move(4, VITESSE, temps);								// Alors fait aller à droite le joueur
 
 		fenetre.clear(sf::Color::Black);								// Effacement de tout ce qui apparait sur la fenêtre avec la couleur noir.
-		fenetre.draw(spa);
+		fenetre.draw(spa);												// Affichage de l'écran
 		fenetre.display();												// Affichage de tout ce qui a été dessiné.
 	}
 
