@@ -45,19 +45,19 @@ struct player
 		}
 		if(sens == 2)
 		{
-			pos.x = pos.x - dir.x * VITESSE * temps.asSeconds();
-			pos.y = pos.y - dir.y * VITESSE * temps.asSeconds();
+			pos.x = pos.x - dir.x * (VITESSE - 1) * temps.asSeconds();
+			pos.y = pos.y - dir.y * (VITESSE - 1) * temps.asSeconds();
 		}
 		if(sens == 3)
 		{
 
-			pos.x = pos.x - dir.y  * VITESSE * temps.asSeconds();
-			pos.y = pos.y + dir.x * VITESSE * temps.asSeconds();
+			pos.x = pos.x - dir.y  * (VITESSE - 0.8) * temps.asSeconds();
+			pos.y = pos.y + dir.x * (VITESSE - 0.8) * temps.asSeconds();
 		}
 		if(sens == 4)
 		{
-			pos.x = pos.x + dir.y  * VITESSE * temps.asSeconds();
-			pos.y = pos.y - dir.x * VITESSE * temps.asSeconds();
+			pos.x = pos.x + dir.y  * (VITESSE - 0.8) * temps.asSeconds();
+			pos.y = pos.y - dir.x * (VITESSE - 0.8) * temps.asSeconds();
 		}
 
 	}
@@ -91,7 +91,6 @@ float dist_mur(sf::Vector2f const& dir, sf::Vector2f const& pos, std::vector<std
 	int stepX;
 	int stepY;
 	int side; //was a NS or a EW wall hit?
-	(void)side;
 	//calculate step and initial sideDist
 	if (dir.x < 0)
 	{
@@ -134,11 +133,16 @@ float dist_mur(sf::Vector2f const& dir, sf::Vector2f const& pos, std::vector<std
 		return ((mapY - pos.y + (1 - stepY) / 2) / dir.y);
 }
 
-void afficher_mur(float const& dist_mur, sf::Image &image, unsigned int colonne)
+void afficher_mur(float const& dist_mur, sf::Image &image, unsigned int colonne, bool accroupi)
 {
 	unsigned short int ratio = HEIGHT * 0.5;
 	unsigned short int mur_h = (unsigned short int)(ratio / dist_mur);
 	unsigned short int rab_cl = (unsigned short int)((HEIGHT - mur_h) / 2);
+
+	if(accroupi == true)
+	{
+		rab_cl = rab_cl - 40;
+	}
 
 
 	for (int i = 0; i < rab_cl && i < HEIGHT; ++i)
@@ -159,7 +163,7 @@ void afficher_mur(float const& dist_mur, sf::Image &image, unsigned int colonne)
 
 }
 
-void diviser_ray(const player &joueur, sf::Image &image, std::vector<std::string> lignes)
+void diviser_ray(const player &joueur, sf::Image &image, std::vector<std::string> lignes, bool accroupi)
 {
 	float diff_ray = FOV / WIDTH;
 
@@ -186,14 +190,26 @@ void diviser_ray(const player &joueur, sf::Image &image, std::vector<std::string
 
 		test_x = vec.x;
 		test_y = vec.y;
-		afficher_mur(dist_mur(vec, joueur.pos, lignes), image, w);
+		afficher_mur(dist_mur(vec, joueur.pos, lignes), image, w, accroupi);
 	}
 }
 
 
 int main()
 {
-	float VITESSE = 1.7;													// On crée un float qui indiquera la vitesse de déplacement du personnage.
+	sf::Texture tex_gun_is_shooting;
+	tex_gun_is_shooting.loadFromFile("en_tir.png");
+
+	sf::Texture tex_gun;
+	tex_gun.loadFromFile("normal.png");
+	sf::Time temps_arme;
+
+	sf::Sprite arme(tex_gun);
+	arme.setPosition(680, 654);
+	arme.setScale(0.8, 0.8);
+
+	bool accroupi = false;												// On crée un bool qui indiquera si le personnage est accroupi ou non.
+	float VITESSE = 1.7;												// On crée un float qui indiquera la vitesse de déplacement du personnage.
 	sf::Clock chrono;													// On crée un chrono.
 	sf::Time temps;														// On crée un temps.
 
@@ -226,8 +242,9 @@ int main()
 		//for (double long i = 0; i < 50000000; ++i)	{}				// (Simulation de pc pas puissant)
 
 		temps = chrono.restart();										// Réinisialisation le chrono et assignement de temps à sa valeur précédente.
+		temps_arme = temps_arme + temps;
 
-		diviser_ray(joueur, image, lignes);								// Euh...					
+		diviser_ray(joueur, image, lignes, accroupi);					// Euh...					
 
 		texture.loadFromImage(image);									// Chargement de l'image
 		spa.setTexture(texture);										// Changement de texture
@@ -253,32 +270,64 @@ int main()
 
 			    pos_old = sf::Mouse::getPosition(fenetre);
 			}
+
+			if (evenement.type == sf::Event::MouseButtonPressed)
+			{
+			    if (evenement.mouseButton.button == sf::Mouse::Left)
+			    {
+			    	arme.setTexture(tex_gun_is_shooting);
+			    	temps_arme = sf::Time::Zero;
+			    }
+			}
 			
 		}
+		if(temps_arme.asSeconds() > 0.2)
+		{
+			temps_arme = sf::Time::Zero;
+			arme.setTexture(tex_gun);
+		}
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))			// Si on appuie sur Control
-			VITESSE = 3;												// Alors on augmente la vitesse
+		if ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) && \
+			(!sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)))
+		{
+			accroupi = true;
+			VITESSE = 0.7;
+		}
 
-		if(!sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))			// Si on n'appuie pas sur Control
-			VITESSE = 1.7;												// Alors on diminue la vitesse
+		if(!sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+			accroupi = false;
+
+		if ((sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) && 	// Si on appuie sur Control
+			(!sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)))		// Et que on appuie pas sur shift
+		{
+			VITESSE = 3;												// Alors on augmente la vitesse.
+		}
+
+		if ((!sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) && 	// Si on n'appuie pas sur Control
+			(!sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)))		// Et que on appuie pas sur shift
+		{
+			VITESSE = 1.7;												// Alors on diminue la vitesse.
+		}
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))			// Si on appuie sur échape
-			fenetre.close();											// Alors on ferme la fenêtre
+			fenetre.close();											// Alors on ferme la fenêtre.
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z))					// Si on appuie sur Z
-			joueur.move(1, VITESSE, temps);								// Alors fait avancer le joueur
+			joueur.move(1, VITESSE, temps);								// Alors fait avancer le joueur.
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))					// Si on appuie sur S
-			joueur.move(2, VITESSE, temps);								// Alors fait reculer le joueur
+			joueur.move(2, VITESSE, temps);								// Alors fait reculer le joueur.
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q))					// Si on appuie sur Q
-			joueur.move(3, VITESSE, temps);								// Alors fait aller à gauche le joueur
+			joueur.move(3, VITESSE, temps);								// Alors fait aller à gauche le joueur.
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))					// Si on appuie sur D
-			joueur.move(4, VITESSE, temps);								// Alors fait aller à droite le joueur
+			joueur.move(4, VITESSE, temps);								// Alors fait aller à droite le joueur.
+
 
 		fenetre.clear(sf::Color::Black);								// Effacement de tout ce qui apparait sur la fenêtre avec la couleur noir.
-		fenetre.draw(spa);												// Affichage de l'écran
+		fenetre.draw(spa);												// Affichage de l'écran.
+		fenetre.draw(arme);
 		fenetre.display();												// Affichage de tout ce qui a été dessiné.
 	}
 
