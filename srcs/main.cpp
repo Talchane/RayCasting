@@ -197,6 +197,9 @@ void diviser_ray(const player &joueur, sf::Image &image, std::vector<std::string
 
 int main()
 {
+	sf::Font font;
+	font.loadFromFile("../arial.ttf");
+	
 	sf::Texture tex_gun_is_shooting;
 	tex_gun_is_shooting.loadFromFile("en_tir.png");
 
@@ -204,9 +207,23 @@ int main()
 	tex_gun.loadFromFile("normal.png");
 	sf::Time temps_arme;
 
+	sf::Texture tex_balle;
+	tex_balle.loadFromFile("../balle.png");
+
+	sf::Sprite balle(tex_balle);
+	balle.setColor(sf::Color(180, 180, 180));
+	balle.setPosition(1485, 890);
+	balle.setScale(0.07, 0.15);
+	balle.setRotation(-90);
+
 	sf::Sprite arme(tex_gun);
 	arme.setPosition(680, 654);
 	arme.setScale(0.8, 0.8);
+
+	unsigned int nombre_balles = 10;
+
+	sf::Text affichage_nb_balles(std::to_string(nombre_balles), font, 60); 
+	affichage_nb_balles.setPosition(1510, 830);
 
 	bool accroupi = false;												// On crée un bool qui indiquera si le personnage est accroupi ou non.
 	float VITESSE = 1.7;												// On crée un float qui indiquera la vitesse de déplacement du personnage.
@@ -227,6 +244,8 @@ int main()
 	fenetre.setVerticalSyncEnabled(true);
 	fenetre.setMouseCursorVisible(false);
 
+	bool can_shoot = true;
+
 	sf::Event evenement;												// Création d'un évènement.
 
 	sf::Image image;													// Déclaration d'une image.
@@ -240,6 +259,7 @@ int main()
 	while(fenetre.isOpen())												// Tant que la fenètre est ouverte
 	{
 		//for (double long i = 0; i < 50000000; ++i)	{}				// (Simulation de pc pas puissant)
+		affichage_nb_balles.setString(std::to_string(nombre_balles));
 
 		temps = chrono.restart();										// Réinisialisation le chrono et assignement de temps à sa valeur précédente.
 		temps_arme = temps_arme + temps;
@@ -273,16 +293,22 @@ int main()
 
 			if (evenement.type == sf::Event::MouseButtonPressed)
 			{
-			    if (evenement.mouseButton.button == sf::Mouse::Left)
-			    {
-			    	arme.setTexture(tex_gun_is_shooting);
-			    	temps_arme = sf::Time::Zero;
-			    }
+				if (nombre_balles > 0 && can_shoot == true)
+				{
+				    if (evenement.mouseButton.button == sf::Mouse::Left)
+				    {
+				    	arme.setTexture(tex_gun_is_shooting);
+				    	temps_arme = sf::Time::Zero;
+				    	nombre_balles--;
+				  		can_shoot = false;
+				    }
+				}
 			}
 			
 		}
 		if(temps_arme.asSeconds() > 0.2)
 		{
+			can_shoot = true;
 			temps_arme = sf::Time::Zero;
 			arme.setTexture(tex_gun);
 		}
@@ -328,6 +354,8 @@ int main()
 		fenetre.clear(sf::Color::Black);								// Effacement de tout ce qui apparait sur la fenêtre avec la couleur noir.
 		fenetre.draw(spa);												// Affichage de l'écran.
 		fenetre.draw(arme);
+		fenetre.draw(affichage_nb_balles);
+		fenetre.draw(balle);
 		fenetre.display();												// Affichage de tout ce qui a été dessiné.
 	}
 
