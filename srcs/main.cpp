@@ -21,13 +21,14 @@ int main()
 
 	std::ifstream map("../map.rc");										// On ouvre un flux permettant de lire la map.
 
-	sf::SoundBuffer sound_fire;
+	sf::SoundBuffer buff_fire;
+	sf::SoundBuffer buff_cant_fire;
 
-    if (!sound_fire.loadFromFile("../images_sons/bruit_tir.wav"))
-    	std::cout << "Buffer non chargé" << std::endl;
+    buff_fire.loadFromFile("../images_sons/bruit_tir.wav");
+    buff_cant_fire.loadFromFile("../images_sons/bruit_tir_impossible.wav");
 
-    sf::Sound sound;
-	sound.setBuffer(sound_fire);
+    sf::Sound tir(buff_fire);
+    sf::Sound cant_fire(buff_cant_fire);
 	
 
 	sf::Font font;
@@ -133,7 +134,7 @@ int main()
 				{
 				    if (evenement.mouseButton.button == sf::Mouse::Left)
 				    {
-				    	sound.play();
+				    	tir.play();
 				    	arme.setTexture(tex_gun_is_shooting);
 				    	temps_arme = sf::Time::Zero;
 				    	nombre_balles--;

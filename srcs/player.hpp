@@ -36,23 +36,49 @@ public:
 			pos.y = pos.y + dir.y * VITESSE * temps.asSeconds();
 
 			if(lignes[(int)pos.y][(int)pos.x] == '1')
+			{
 				pos.x = pos.x - dir.x * VITESSE * temps.asSeconds();
+				pos.y = pos.y - dir.y * VITESSE * temps.asSeconds();
+			}
 		}
+
 		if(sens == 2)
 		{
 			pos.x = pos.x - dir.x * (VITESSE - 1) * temps.asSeconds();
 			pos.y = pos.y - dir.y * (VITESSE - 1) * temps.asSeconds();
+
+			if(lignes[(int)pos.y][(int)pos.x] == '1')
+			{
+				pos.x = pos.x + dir.x * VITESSE * temps.asSeconds();
+				pos.y = pos.y + dir.y * VITESSE * temps.asSeconds();
+			}
+
 		}
+
 		if(sens == 3)
 		{
 
 			pos.x = pos.x - dir.y  * (VITESSE - 0.8) * temps.asSeconds();
 			pos.y = pos.y + dir.x * (VITESSE - 0.8) * temps.asSeconds();
+
+			if(lignes[(int)pos.y][(int)pos.x] == '1')
+			{
+				pos.x = pos.x + dir.x * VITESSE * temps.asSeconds();
+				pos.y = pos.y - dir.y * VITESSE * temps.asSeconds();
+			}
+
 		}
+
 		if(sens == 4)
 		{
 			pos.x = pos.x + dir.y  * (VITESSE - 0.8) * temps.asSeconds();
 			pos.y = pos.y - dir.x * (VITESSE - 0.8) * temps.asSeconds();
+
+			if(lignes[(int)pos.y][(int)pos.x] == '1')
+			{
+				pos.x = pos.x - dir.x * VITESSE * temps.asSeconds();
+				pos.y = pos.y + dir.y * VITESSE * temps.asSeconds();
+			}
 		}
 
 	}

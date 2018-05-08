@@ -78,11 +78,21 @@ void afficher_mur(float const& dist_mur, sf::Image &image, unsigned int const& c
 	for (int i = rab_cl; i < mur_h + rab_cl && i < HEIGHT; ++i)
 	{
 		image.setPixel(colonne, i, sf::Color(20, 20, 20));
+
 	}
 
-	for (int i = mur_h + rab_cl; i < HEIGHT; ++i)
+	if (mur_h + rab_cl >= HEIGHT)
 	{
-		image.setPixel(colonne, i, sf::Color(40, 40, 40));
+		for (int a = 0; a < HEIGHT; ++a)
+			image.setPixel(colonne, a, sf::Color(20, 20, 20));
+	}
+
+	else
+	{
+		for (int i = mur_h + rab_cl; i < HEIGHT; ++i)
+		{
+			image.setPixel(colonne, i, sf::Color(40, 40, 40));
+		}
 	}
 
 
